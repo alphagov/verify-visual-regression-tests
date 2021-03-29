@@ -1,0 +1,144 @@
+resource_types:
+  - name: paas-semver
+    type: docker-image
+    source:
+      repository: ghcr.io/alphagov/paas/semver-resource
+      tag: latest
+
+resources:
+  - name: verify-visual-regression-tests
+    icon: docker
+    type: docker-image
+    source:
+      repository: chriswynne/verify-visual-regression
+      tag: latest
+
+  - name: approval-trigger
+    icon: database
+    type: paas-semver
+    source:
+      bucket: gds-verify-tools-platform-deployer
+      key: hub-microservices-trigger
+      region_name: eu-west-2
+
+jobs:
+  - name: run-visual-regression-tests
+    plan:
+      - get: verify-visual-regression-tests
+      - task: run-tests
+        image: verify-visual-regression-tests
+        config:
+          platform: linux
+          outputs:
+            - name: report
+          params:
+            VERIFY_TEST_RP_URL: https://test-rp-staging.cloudapps.digital/test-rp
+            VERIFY_FRONTEND_DOMAIN: https://www.staging.signin.service.gov.uk
+            REPORT_APP_NAME: verify-visual-regression-test-report
+          run:
+            path: bash
+            args:
+              - -c
+              - |
+                mv /backstop ./backstop
+                cd backstop
+
+                wget -nv -r -np "https://${REPORT_APP_NAME}.cloudapps.digital/bitmaps_reference/"
+                mv "${REPORT_APP_NAME}.cloudapps.digital/bitmaps_reference" ./backstop_data/bitmaps_reference
+
+                npm run test
+
+                cp -r backstop_data/* ../report
+                cp Staticfile ../report
+                echo "${REPORT_APP_NAME}" > ../report/app-name
+
+        ensure:
+          task: host-report
+          config:
+            platform: linux
+            image_resource:
+              type: docker-image
+              source:
+                repository: ghcr.io/alphagov/paas/cf-cli
+                tag: 90f9f534ed5a3887b9c5d55a20cca6561f7de6a4
+            params:
+              CF_API: api.cloud.service.gov.uk
+              CF_ORG: govuk-verify
+              CF_USER:
+              CF_PASS:
+              CF_SPACE: sandbox
+            inputs:
+              - name: report
+            run:
+              path: bash
+              args:
+                - -c
+                - |
+                  set -eu
+                  cf api "$CF_API"
+                  cf auth "$CF_USER" "$CF_PASS"
+                  cf target -o "$CF_ORG" -s "$CF_SPACE"
+
+                  cd report
+                  cf push $(cat app-name) -m 64m -i 1
+
+  - name: approve-visual-regression-tests
+    plan:
+      - get: verify-visual-regression-tests
+      - task: approve-tests
+        image: verify-visual-regression-tests
+        config:
+          platform: linux
+          outputs:
+            - name: report
+          params:
+            VERIFY_TEST_RP_URL: https://test-rp-staging.cloudapps.digital/test-rp
+            VERIFY_FRONTEND_DOMAIN: https://www.staging.signin.service.gov.uk
+            REPORT_APP_NAME: verify-visual-regression-test-report
+          run:
+            path: bash
+            args:
+              - -c
+              - |
+                mv /backstop ./backstop
+                cd backstop
+                wget -nv -r -np -R "*.html,*.tmp" "https://${REPORT_APP_NAME}.cloudapps.digital/bitmaps_test/"
+                wget -nv -r -np "https://${REPORT_APP_NAME}.cloudapps.digital/html_report/"
+
+                mv "${REPORT_APP_NAME}.cloudapps.digital/bitmaps_test" ./backstop_data/bitmaps_test
+                mv "${REPORT_APP_NAME}.cloudapps.digital/html_report" ./backstop_data/html_report
+
+                npm run approve
+
+                cp -r backstop_data/* ../report
+                cp Staticfile ../report
+                echo "${REPORT_APP_NAME}" > ../report/app-name
+        ensure:
+          task: host-report
+          config:
+            platform: linux
+            image_resource:
+              type: docker-image
+              source:
+                repository: ghcr.io/alphagov/paas/cf-cli
+                tag: 90f9f534ed5a3887b9c5d55a20cca6561f7de6a4
+            params:
+              CF_API: api.cloud.service.gov.uk
+              CF_ORG: govuk-verify
+              CF_USER:
+              CF_PASS:
+              CF_SPACE: sandbox
+            inputs:
+              - name: report
+            run:
+              path: bash
+              args:
+                - -c
+                - |
+                  set -eu
+                  cf api "$CF_API"
+                  cf auth "$CF_USER" "$CF_PASS"
+                  cf target -o "$CF_ORG" -s "$CF_SPACE"
+
+                  cd report
+                  cf push $(cat app-name) -m 64m -i 1

@@ -1,0 +1,13 @@
+{
+  "name": "verify-frontend-visual-regression-tests",
+  "version": "1.0.0",
+  "description": "Visual regression testing for Verify Frontend",
+  "scripts": {
+    "approve": "backstop --configPath=config.js approve",
+    "test": "backstop --configPath=config.js test"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "backstopjs": "5.0.6"
+  }
+}
