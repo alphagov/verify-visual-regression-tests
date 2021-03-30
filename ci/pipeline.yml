@@ -1,10 +1,3 @@
-resource_types:
-  - name: paas-semver
-    type: docker-image
-    source:
-      repository: ghcr.io/alphagov/paas/semver-resource
-      tag: latest
-
 resources:
   - name: verify-visual-regression-tests
     icon: docker
@@ -15,16 +8,22 @@ resources:
 
   - name: approval-trigger
     icon: database
-    type: paas-semver
+    type: semver
     source:
-      bucket: gds-verify-tools-platform-deployer
-      key: hub-microservices-trigger
+      initial_version: '0.0.0'
+      driver: s3
       region_name: eu-west-2
+      bucket: wynne-verify-visual-regresssion
+      key: approval-trigger
+      access_key_id:
+      secret_access_key:
 
 jobs:
   - name: run-visual-regression-tests
     plan:
       - get: verify-visual-regression-tests
+      - get: approval-trigger
+        trigger: true
       - task: run-tests
         image: verify-visual-regression-tests
         config:
@@ -47,10 +46,13 @@ jobs:
                 mv "${REPORT_APP_NAME}.cloudapps.digital/bitmaps_reference" ./backstop_data/bitmaps_reference
 
                 npm run test
+                test_result_exit_code=$?
 
                 cp -r backstop_data/* ../report
                 cp Staticfile ../report
                 echo "${REPORT_APP_NAME}" > ../report/app-name
+
+                exit $test_result_exit_code
 
         ensure:
           task: host-report
@@ -142,3 +144,6 @@ jobs:
 
                   cd report
                   cf push $(cat app-name) -m 64m -i 1
+
+      - put: approval-trigger
+        params: {bump: major}
