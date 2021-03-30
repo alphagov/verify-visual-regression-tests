@@ -80,7 +80,7 @@ module.exports = {
       "label": "Sign in",
       "url": frontendDomain + "/sign-in",
       "getSession": testRpUrl,
-      "removeSignIn": true
+      "sortSignIn": true
     },
   ],
   "paths": {

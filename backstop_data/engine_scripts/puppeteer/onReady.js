@@ -3,5 +3,5 @@ module.exports = async (page, scenario, vp) => {
   await require('./submitFormHelper')(page, scenario);
   await require('./removeAboutCompanies')(page, scenario);
   await require('./removeChooseACertifiedCompany')(page, scenario);
-  await require('./removeSignIn')(page, scenario);
+  await require('./sortSignIn')(page, scenario);
 };
