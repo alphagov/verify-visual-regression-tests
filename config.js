@@ -4,16 +4,16 @@ var frontendDomain = process.env.VERIFY_FRONTEND_DOMAIN || 'http://localhost:503
 module.exports = {
   "id": "backstop_verify",
   "viewports": [
-//    {
-//      "label": "phone",
-//      "width": 320,
-//      "height": 480
-//    },
-//    {
-//      "label": "tablet",
-//      "height": 768,
-//      "width": 1024
-//    },
+    {
+      "label": "phone",
+      "width": 320,
+      "height": 480
+    },
+    {
+      "label": "tablet",
+      "height": 768,
+      "width": 1024
+    },
     {
       "label": "desktop",
       "width": 1366,
@@ -40,7 +40,7 @@ module.exports = {
       "label": "About",
       "url": frontendDomain + "/about",
       "getSession": testRpUrl,
-      "removeAboutCompanies": true
+      "sortAboutCompanies": true
     },
     {
       "label": "Will it work for me",
@@ -69,7 +69,7 @@ module.exports = {
       "url": frontendDomain + "/choose-a-certified-company",
       "getSession": testRpUrl,
       "selectDocuments": frontendDomain + "/select-documents",
-      "removeChooseACertifiedCompany": true
+      "sortChooseACertifiedCompany": true
     },
     {
       "label": "About company",

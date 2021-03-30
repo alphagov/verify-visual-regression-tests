@@ -18,7 +18,7 @@ module.exports = async (page, scenario) => {
         })
 
         // We need to sort the IDPs by some criteria - doesn't really matter what as long as it's consistent between
-        // test runs. Using the button name (which is actually the IDPs entityID works). We need to resolve the names
+        // test runs. Using the button name (which is actually the IDPs entityID) works. We need to resolve the names
         // before sorting as the sort doesn't like async stuff.
         const companyInnersWithResolvedButtonNames = await Promise.all(acceptingSignInsCompanyInners.map(async companyInner => {
             let button = await companyInner.$(".govuk-button");
