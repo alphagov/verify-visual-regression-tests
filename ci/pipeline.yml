@@ -6,28 +6,76 @@ resources:
       repository: chriswynne/verify-visual-regression
       tag: latest
 
-  - name: approval-trigger
+  - name: regression-test-trigger
     icon: database
     type: semver
     source:
-      initial_version: '0.0.0'
       driver: s3
       region_name: eu-west-2
       bucket: wynne-verify-visual-regresssion
-      key: approval-trigger
+      key: regression-test-trigger
+      access_key_id:
+      secret_access_key:
+
+  - name: hub-apps-version
+    icon: database
+    type: semver
+    source:
+      driver: s3
+      region_name: eu-west-2
+      bucket: wynne-verify-visual-regresssion
+      key: hub-apps-version
+      access_key_id:
+      secret_access_key:
+
+  - name: skip-file
+    icon: debug-step-over
+    type: s3
+    source:
+      bucket: wynne-verify-visual-regresssion
+      region_name: eu-west-2
+      versioned_file: skip-file
       access_key_id:
       secret_access_key:
 
 jobs:
+  - name: deploy-hub-staging
+    plan:
+      - get: hub-apps-version
+      - task: do-the-deploy
+        config:
+          platform: linux
+          image_resource:
+            type: docker-image
+            source:
+              repository: alpine
+              tag: 3.13.3
+          run:
+            path: sh
+            args:
+              - -c
+              - |
+                echo "'deploying' for 10 seconds"
+                sleep 10
+      - put: hub-apps-version
+        params: { bump: major }
+
   - name: run-visual-regression-tests
     plan:
       - get: verify-visual-regression-tests
-      - get: approval-trigger
         trigger: true
+      - get: regression-test-trigger
+        trigger: true
+      - get: hub-apps-version
+        trigger: true
+        passed: [ deploy-hub-staging ]
+      - get: skip-file
       - task: run-tests
         image: verify-visual-regression-tests
         config:
           platform: linux
+          inputs:
+            - name: skip-file
           outputs:
             - name: report
           params:
@@ -45,8 +93,19 @@ jobs:
                 wget -nv -r -np "https://${REPORT_APP_NAME}.cloudapps.digital/bitmaps_reference/"
                 mv "${REPORT_APP_NAME}.cloudapps.digital/bitmaps_reference" ./backstop_data/bitmaps_reference
 
-                npm run test
-                test_result_exit_code=$?
+                if [ $(cat ../skip-file/skip-file) = 'skip' ]
+                then
+                  echo "Skip file set to 'skip'. Skipping the tests."
+                  wget -nv -r -np -R "*.html,*.tmp" "https://${REPORT_APP_NAME}.cloudapps.digital/bitmaps_test/"
+                  wget -nv -r -np "https://${REPORT_APP_NAME}.cloudapps.digital/html_report/"
+
+                  mv "${REPORT_APP_NAME}.cloudapps.digital/bitmaps_test" ./backstop_data/bitmaps_test
+                  mv "${REPORT_APP_NAME}.cloudapps.digital/html_report" ./backstop_data/html_report
+                  test_result_exit_code=0
+                else
+                  npm run test
+                  test_result_exit_code=$?
+                fi
 
                 cp -r backstop_data/* ../report
                 cp Staticfile ../report
@@ -55,34 +114,55 @@ jobs:
                 exit $test_result_exit_code
 
         ensure:
-          task: host-report
-          config:
-            platform: linux
-            image_resource:
-              type: docker-image
-              source:
-                repository: ghcr.io/alphagov/paas/cf-cli
-                tag: 90f9f534ed5a3887b9c5d55a20cca6561f7de6a4
-            params:
-              CF_API: api.cloud.service.gov.uk
-              CF_ORG: govuk-verify
-              CF_USER:
-              CF_PASS:
-              CF_SPACE: sandbox
-            inputs:
-              - name: report
-            run:
-              path: bash
-              args:
-                - -c
-                - |
-                  set -eu
-                  cf api "$CF_API"
-                  cf auth "$CF_USER" "$CF_PASS"
-                  cf target -o "$CF_ORG" -s "$CF_SPACE"
+          do:
+            - task: host-report
+              config:
+                platform: linux
+                image_resource:
+                  type: docker-image
+                  source:
+                    repository: ghcr.io/alphagov/paas/cf-cli
+                    tag: 90f9f534ed5a3887b9c5d55a20cca6561f7de6a4
+                params:
+                  CF_API: api.cloud.service.gov.uk
+                  CF_ORG: govuk-verify
+                  CF_USER:
+                  CF_PASS:
+                  CF_SPACE: sandbox
+                inputs:
+                  - name: report
+                run:
+                  path: bash
+                  args:
+                    - -c
+                    - |
+                      set -eu
+                      cf api "$CF_API"
+                      cf auth "$CF_USER" "$CF_PASS"
+                      cf target -o "$CF_ORG" -s "$CF_SPACE"
 
-                  cd report
-                  cf push $(cat app-name) -m 64m -i 1
+                      cd report
+                      cf push $(cat app-name) -m 64m -i 1
+            - task: set-skip-file-to-not-skip
+              config:
+                platform: linux
+                image_resource:
+                  type: docker-image
+                  source:
+                    repository: alpine
+                    tag: 3.13.3
+                outputs:
+                  - name: skip-file-dir
+                run:
+                  path: sh
+                  args:
+                    - -c
+                    - |
+                      echo "setting skip-file content to 'do-not-skip'"
+                      echo "do-not-skip" > skip-file-dir/skip-file
+            - put: skip-file
+              params:
+                file: skip-file-dir/skip-file
 
   - name: approve-visual-regression-tests
     plan:
@@ -128,7 +208,7 @@ jobs:
               CF_API: api.cloud.service.gov.uk
               CF_ORG: govuk-verify
               CF_USER:
-              CF_PASS:
+              CF_PASS: 
               CF_SPACE: sandbox
             inputs:
               - name: report
@@ -145,5 +225,52 @@ jobs:
                   cd report
                   cf push $(cat app-name) -m 64m -i 1
 
-      - put: approval-trigger
+      - put: regression-test-trigger
         params: {bump: major}
+
+  - name: skip-without-approval
+    plan:
+      - task: set-skip-file-to-skip
+        config:
+          platform: linux
+          image_resource:
+            type: docker-image
+            source:
+              repository: alpine
+              tag: 3.13.3
+          outputs:
+            - name: skip-file-dir
+          run:
+            path: sh
+            args:
+              - -c
+              - |
+                echo "setting skip-file content to 'skip'"
+                echo "skip" > skip-file-dir/skip-file
+      - put: skip-file
+        params:
+          file: skip-file-dir/skip-file
+      - put: regression-test-trigger
+        params: {bump: major}
+
+  - name: test-hub-staging
+    plan:
+      - get: hub-apps-version
+        trigger: true
+        passed: [ run-visual-regression-tests ]
+      - task: do-the-tests
+        config:
+          platform: linux
+          image_resource:
+            type: docker-image
+            source:
+              repository: alpine
+              tag: 3.13.3
+          run:
+            path: sh
+            args:
+              - -c
+              - |
+                echo "'testing' for 10 seconds"
+                sleep 10
+
