@@ -1,4 +1,5 @@
-FROM node:15.11
+ARG base_image=node:15.11
+FROM ${base_image}
 
 # https://medium.com/@ssmak/how-to-fix-puppetteer-error-while-loading-shared-libraries-libx11-xcb-so-1-c1918b75acc3
 RUN apt-get update && apt-get install -y gconf-service libasound2 libatk1.0-0 libc6 libcairo2 libcups2 libdbus-1-3 \
