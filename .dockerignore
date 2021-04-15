@@ -1,0 +1,5 @@
+.idea
+backstop_data/bitmaps*
+backstop_data/html_report
+ci
+node_modules
