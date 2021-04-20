@@ -28,11 +28,11 @@ Concourse automatically runs the tests against staging and publishes the [HTML r
 If the tests fail you can use the HTML report to decide if you need to fix something or if you want to approve the diff.
 
 ### Approving the tests with Concourse
-To approve the last tests run the `approve-visual-regression-tests` job. This will promote the last test images to the reference images and re-run the tests in the pipeline.
+To approve the last tests run the [`approve-visual-regression-tests`][concourse_jobs] job. This will promote the last test images to the reference images and re-run the tests in the pipeline.
 
 ### Skipping the tests with Concourse
 
-There may be situations where the tests fail but you don't want to approve the failures, or fix whatever made them fail. This is probably quite rare - maybe you just need to get a release out or something. To do this run the `skip-without-approval` job. The tests will still fail on the next run.
+There may be situations where the tests fail but you don't want to approve the failures, or fix whatever made them fail. This is probably quite rare - maybe you just need to get a release out or something. To do this run the [`skip-visual-regression-tests-without-approval`][concourse_jobs] job. The tests will still fail on the next run.
 
 ## Updating tests
 
@@ -49,5 +49,6 @@ of the [Open Government 3.0][ogl] licence.
 [mit]: LICENCE
 [copyright]: http://www.nationalarchives.gov.uk/information-management/re-using-public-sector-information/uk-government-licensing-framework/crown-copyright/
 [ogl]: http://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/
-[html_report]: https://verify-visual-regression-test-report.cloudapps.digital/html_report/
+[html_report]: https://verify-staging-visual-regression-test-report.cloudapps.digital/html_report/
+[concourse_jobs]: https://cd.gds-reliability.engineering/teams/verify/pipelines/deploy-verify-hub?group=visual-regression-tests
 [dm_repo]: https://github.com/alphagov/digitalmarketplace-visual-regression
