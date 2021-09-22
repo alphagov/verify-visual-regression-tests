@@ -1,9 +1,9 @@
 module.exports = async (page, scenario) => {
-  console.log("CLEARING COOKIES");
+    console.log("CLEARING COOKIES");
 
-  const cookies = await page.cookies(scenario.url);
+    const cookies = await page.cookies(scenario.url);
 
-  await Promise.all(
-    cookies.map(async (cookie) => { page.deleteCookie(cookie) })
-  );
+    await Promise.all(
+        cookies.map(async (cookie) => { page.deleteCookie(cookie) })
+    );
 };

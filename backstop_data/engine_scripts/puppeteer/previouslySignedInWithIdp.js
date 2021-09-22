@@ -23,14 +23,14 @@ module.exports = async (page, scenario) => {
             page.click('#agree')
         ])
 
-         await Promise.all([
-             page.waitForNavigation(),
-             page.click('#logout')
-         ])
+        await Promise.all([
+            page.waitForNavigation(),
+            page.click('#logout')
+        ])
 
-         await Promise.all([
-             page.waitForNavigation(),
-             page.click('.button.get-started')
-         ])
+        await Promise.all([
+            page.waitForNavigation(),
+            page.click('.button.get-started')
+        ])
     }
 }
