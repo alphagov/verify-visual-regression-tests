@@ -4,6 +4,7 @@ This repo contains configuration for BackstopJS to detect unintended visual regr
 HEAVILY inspired by the [Digital Marketplace visual regression tests][dm_repo]. Thanks Digital Marketplace.
 
 ## Local setup
+
 You'll need the frontend and hub running locally.
 
 You'll also need node installed locally.
@@ -12,14 +13,34 @@ Clone this repo and run:
 `npm install`
 
 ## Running tests locally
+
 Simply run:
+
 `npm run test`
+
+Or, to use the script that does some housekeeping, run:
+
+`./run-tests.sh -e local`
+
+See the script for all available options.
 
 With the basic setup as supplied, this will run an initial test on your localhost.  Everything will fail because you don't have any reference screenshots.  To get some references, simply approve your test run:
 
 `npm run approve`
 
+Or create fresh reference images before running the tests with
+
+`npm run reference`
+
+If you're using the script it will automatically generate fresh reference images if you don't have any, before running the tests.
+
 Now you can happily change your local frontend and run tests (with `npm run test`) to make sure you've not broken things!  Everytime you do a good change, simply `npm run approve` to update your reference screenshots.
+
+## Running tests in staging
+
+Simply run
+
+`./run-tests.sh -e staging`
 
 ## Running tests with Concourse
 
@@ -28,6 +49,7 @@ Concourse automatically runs the tests against staging and publishes the [HTML r
 If the tests fail you can use the HTML report to decide if you need to fix something or if you want to approve the diff.
 
 ### Approving the tests with Concourse
+
 To approve the last tests run the [`approve-visual-regression-tests`][concourse_jobs] job. This will promote the last test images to the reference images and re-run the tests in the pipeline.
 
 ### Skipping the tests with Concourse
