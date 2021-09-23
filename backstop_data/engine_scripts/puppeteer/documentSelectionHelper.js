@@ -1,20 +1,11 @@
 module.exports = async (page, scenario) => {
-    if (scenario.hasOwnProperty('selectDocuments')) {
-        await page.goto(scenario.selectDocuments)
-
-        await page.waitFor('#select_documents_form_has_valid_passport')
-        await page.waitFor('#select_documents_form_has_driving_license')
-        await page.waitFor('#select_documents_form_has_phone_can_app')
-        await page.waitFor('#select_documents_form_has_credit_card')
-
-        await page.click('#select_documents_form_has_valid_passport')
-        await page.click('#select_documents_form_has_driving_license')
-        await page.click('#select_documents_form_has_phone_can_app')
-        await page.click('#select_documents_form_has_credit_card')
+    if (scenario.selectDocuments) {
+        let frontendDomain = process.env.VERIFY_FRONTEND_DOMAIN
+        await page.goto(frontendDomain + "/about-documents")
 
         await Promise.all([
-          page.waitForNavigation(),
-          page.click('#next-button')
+            page.waitForNavigation(),
+            page.click('#next-button')
         ]);
     }
 }

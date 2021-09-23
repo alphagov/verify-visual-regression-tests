@@ -75,7 +75,7 @@ module.exports = async (page, scenario) => {
 
     async function resolveCompanyInnerHtml(arrayOfInnersWithSortAttribute) {
         let innerHtmlValues = [];
-        for (var i = 0; i < arrayOfInnersWithSortAttribute.length; i++) {
+        for (let i = 0; i < arrayOfInnersWithSortAttribute.length; i++) {
             const htmlHandle = await arrayOfInnersWithSortAttribute[i][0].evaluateHandle(div => div.innerHTML);
             innerHtmlValues.push(await htmlHandle.jsonValue());
         }
@@ -83,7 +83,7 @@ module.exports = async (page, scenario) => {
     }
 
     async function updatePageHtml(companyInners, htmlValues) {
-        for (var i = 0; i < companyInners.length; i++) {
+        for (let i = 0; i < companyInners.length; i++) {
             await companyInners[i].evaluate((companyInner, htmlValue) => {
                 companyInner.innerHTML = htmlValue;
             }, htmlValues[i])
