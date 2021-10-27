@@ -62,7 +62,6 @@ module.exports = {
             label: "Choose a certified company",
             url: frontendDomain + "/choose-a-certified-company",
             getSession: testRpUrl,
-            selectDocuments: true,
             sortChooseACertifiedCompany: true
         },
         {
