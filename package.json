@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "Visual regression testing for Verify Frontend",
   "scripts": {
+    "reference": "backstop --configPath=config.js reference",
     "approve": "backstop --configPath=config.js approve",
     "test": "backstop --configPath=config.js test"
   },
