@@ -10,7 +10,7 @@ module.exports = async (page, scenario) => {
         // test runs. Using the image alt text (which is the name of the IDP) works. We need to resolve the alt text
         // before sorting as the sort doesn't like async stuff.
         const companyListItemsWithResolvedImgAlt = await Promise.all(companyListItems.map(async listItem => {
-            let image = await listItem.$("img");
+            let image = await listItem.$('img');
             let imageAlt = await image.evaluate(image => { return image.alt });
             return [listItem, imageAlt];
         }));
