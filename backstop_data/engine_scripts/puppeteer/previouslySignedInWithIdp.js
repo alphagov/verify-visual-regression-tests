@@ -1,6 +1,7 @@
 module.exports = async (page, scenario) => {
-    if (scenario.hasOwnProperty('previouslySignedInWithIDP')) {
-        await page.goto(scenario.previouslySignedInWithIDP);
+    if (scenario.previouslySignedInWithIDP) {
+        let frontendDomain = process.env.VERIFY_FRONTEND_DOMAIN
+        await page.goto(frontendDomain + "/sign-in");
 
         await Promise.all([
             page.waitForNavigation(),

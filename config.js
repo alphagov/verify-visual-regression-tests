@@ -34,7 +34,7 @@ module.exports = {
             label: "Start with previous IDP",
             url: frontendDomain + "/start",
             getSession: testRpUrl,
-            previouslySignedInWithIDP: frontendDomain + "/sign-in",
+            previouslySignedInWithIDP: true,
         },
         {
             label: "About",

@@ -9,10 +9,15 @@ module.exports = async (page, scenario) => {
         // We need to sort the companies by some criteria - doesn't really matter what as long as it's consistent between
         // test runs. Using the button name (which is the name of the IDP) works. We need to resolve the name
         // before sorting as the sort doesn't like async stuff.
-        const companyFormsWithResolvedButtonName = await Promise.all(companyForms.map(async form => {
+        const formsWithButtons = (await Promise.all(companyForms.map(async form => {
             let button = await form.$('button');
+            return [form, button]
+        }))).filter(formWithButton => formWithButton[1] != null);
+
+        const companyFormsWithResolvedButtonName = await Promise.all(formsWithButtons.map(async formWithButton => {
+            let button = formWithButton[1];
             let buttonName = await button.evaluate(button => { return button.name });
-            return [form, buttonName];
+            return [formWithButton[0], buttonName];
         }));
 
         // Sort by the name we just retrieved
