@@ -1,6 +1,10 @@
 # Verify - Visual Regression Testing
 This repo contains configuration for BackstopJS to detect unintended visual regressions introduced by new code.
 
+>**GOV.UK Verify has closed**
+>
+>This repository is out of date and has been archived
+
 HEAVILY inspired by the [Digital Marketplace visual regression tests][dm_repo]. Thanks Digital Marketplace.
 
 ## Local setup
